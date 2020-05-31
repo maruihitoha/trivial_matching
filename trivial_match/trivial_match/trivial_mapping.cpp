@@ -9,13 +9,23 @@
 // 2015112147 김도훈
 using namespace std;
 
+
 char match[500000]; // 매칭 결과 생성되는 MyDNA를 담을 배열
+int index_list[500000] = { 0 };
 
 string to_str(int x) {
 	ostringstream s;
 	s << x;
 
 	return s.str();
+}
+
+void push_arr(int arr[])
+{
+	for (int i = 0; i < 1; i++)
+	{
+		arr[i] = arr[i + 1];
+	}
 }
 
 
@@ -29,6 +39,8 @@ void create_ref_dna()
 
 	ofstream b("ref_dna.txt");
 
+	int count[4] = { 0 };
+	int history[2] = {0,1};
 	int cnt = 0;
 	int a; 
 
@@ -36,10 +48,20 @@ void create_ref_dna()
 	for (int i = 0; i < 500000; i++)
 	{
 		a = dis(gen);
-		if (a == 0) { b << 'A'; }
-		else if (a == 1) { b << 'T'; }
-		else if (a == 2) { b << 'G'; }
-		else { b << 'C'; }
+		history[1] = a;
+		while (history[0] == history[1])
+		{
+			a = dis(gen);
+			history[0] = history[1];
+			history[1] = a;
+			
+		}
+		if (a == 0) { b << 'A'; count[0]++; }
+		else if (a == 1) { b << 'T'; count[1]++;}
+		else if (a == 2) { b << 'G'; count[2]++;}
+		else { b << 'C'; count[3]++;}
+		push_arr(history);
+		history[1] = a;
 	}
 	b.close();
 	string m;
@@ -49,17 +71,19 @@ void create_ref_dna()
 
 	cout << "reference DNA 생성 성공! " << endl;
 	cout << "size :: " << m.length() << endl;
+	cout << "A : " << count[0] << " 개  B : " << count[1] << " 개  C : " << count[2] << " 개  D : " << count[3] << " 개 \n";
 }
 
 
 // 문자가 들어왔을 때, 해당 문자를 다른 문자로 바꾸는 함수
 void return_otherchar(char& ch)
 {
-
 	// 난수 생성
-	srand(time(NULL));
+	random_device rd;
+	mt19937 gen(rd());
+	uniform_int_distribution<int> dis(0, 3);
 
-	int dice = rand() % 3; // 주사위 돌리듯 dice
+	int dice = dis(gen); // 주사위 돌리듯 dice
 
 	// 들어온 문자가 A일 때
 	if (ch == 'A')
@@ -132,7 +156,7 @@ void create_different_index(int*& arr, int x, int k) // k = 범위, x = 갯수.
 		arr[i] = dis(gen);
 		while (!chk_repeat(arr, i)) 
 		{
-			arr[i] = rand() % k;
+			arr[i] = dis(gen);
 		}
 	}
 }
@@ -214,8 +238,9 @@ int create_mysequence_and_shortread(int& k, int& n)
 		int* short_read_index = new int[n]; // short read가 어디서 왔는지
 
 		int index;
-		create_different_index(short_read_index, n, 499999 - k);
+		
 
+		create_different_index(short_read_index, n, 499999 - k);
 		// short read 생성
 		for (int i = 0; i < n; i++)
 		{
@@ -227,6 +252,7 @@ int create_mysequence_and_shortread(int& k, int& n)
 			filewrite_short << short_read_str + "\n";
 		}
 
+		
 		int cnt_mismatch2 = 0;
 
 		for (int i = 0; i < 500000; i++)
@@ -272,24 +298,40 @@ int BF_shortread(string ref_d, string short_rd,int k_size ,int threshold , int s
 {
 	int i;
 	int cnt = 0;
+
 	for (i = start_point; i < 500000 - k_size; i++)
 	{
-		for (int j = 0; j < k_size; j++)
+		if (index_list[i] != 1)
 		{
-			if ((ref_d[i + j] != short_rd[j]))
+			for (int j = 0; j < k_size; j++)
 			{
-				cnt++;
+				// reference dna와 short read의 문자가 다를 경우 cnt +1
+				if ((ref_d[i + j] != short_rd[j]))
+				{
+					cnt++;
+					if (cnt > threshold)
+						break;
+				}
+
+			}
+			// 만약 허용 mismatch 개수보다 mismatch가 적고
+			// 중복된 위치가 아니라면 해당 index를 반환
+			if ((cnt < threshold))
+			{
+				index_list[i] = 1;
+				return i;
+			}
+
+			// cnt가 허용 수보다 크거나 중복된 위치가 결과로 나왔을 경우
+			// 반복문 계속.
+			else
+			{
+				cnt = 0;
 			}
 		}
-		if ((cnt < threshold))
-		{
-			return i;
-		}
-		else
-		{
-			cnt = 0;
-		}
 	}
+
+	// 반복이 끝났음에도 mismatch 수가 많을 경우 return -1
 	if (cnt > threshold)
 	{
 		return -1;
@@ -331,19 +373,26 @@ int main()
 
 		read_ref_dna >> reference_dna;	// reference dna
 		read_seq_dna >> my_seq_str;		// my dna
-		
 
 		// short read 불러옴
 		///////////////////////////////////////////////////////////////////////////////////
+
 		while (getline(read_short_read, in_line))
 		{
 			s_r_array[cnt++] = in_line;
+
+			//cout << cnt << " "<<in_line << endl;
 		}
+
 		cnt = 0;
 		///////////////////////////////////////////////////////////////////////////////////
 
-
-
+		//  match 배열 초기화
+		for (int i = 0; i < 500000; i++)
+		{
+			match[i] = 'N';
+		}
+		
 		// 브루트 포스 진행
 		///////////////////////////////////////////////////////////////////////////////////
 		for (int i = 0; i < n; i++)
@@ -354,6 +403,7 @@ int main()
 
 			int index = BF_shortread(reference_dna, s_r_array[i], k ,threshold, 0);
 			
+
 			if (index != -1)
 			{
 				for (int j = 0; j < k; j++)
@@ -364,19 +414,12 @@ int main()
 		}
 		///////////////////////////////////////////////////////////////////////////////////
 
-		// 생성된 match 배열. 정리
-		for (int i = 0; i < 500000; i++)
-		{
-			if (match[i] == NULL)
-			{
-				match[i] = 'N';
-			}
-		}
 
 		regenerated_sequence = match;
 
 		int cnt_mismatch = 0;
 		int cnt_mismatch2 = 0;
+		int cnt_mismatch3 = 0;
 
 		for (int i = 0; i < 500000; i++)
 		{
@@ -394,15 +437,24 @@ int main()
 			}
 		}
 
+		for (int i = 0; i < 500000; i++)
+		{
+			if (match[i] != 'N' && my_seq_str[i] != match[i])
+			{
+				(cnt_mismatch3)++;
+			}
+		}
+		
 		double due_time = ((float)clock() - clk_start) / CLOCKS_PER_SEC;
 		int min = due_time / 60;
 		double sec = due_time - 60*min;
 		printf("걸린 시간 :: %d분  %.2f 초 \n", min, sec);
-
+		
 		cout << "short read의 길이 :: " << k << " , short read의 갯수 :: " << n << "개, 허용 mismatch :: " << threshold << endl;
 		cout << "500000개 중 " << cnt_mismatch << "개 틀립니다." << endl;
 		cout << "my sequence와의 차이는 500000개 중 " << cnt_mismatch2 << "개 틀립니다." << endl;
-
+		cout << "my sequence와의 차이는 500000개 중 NULL을 제외할 경우 " << cnt_mismatch2 << "개 틀립니다." << endl;
+	
 
 		write_generated_seq << regenerated_sequence;
 

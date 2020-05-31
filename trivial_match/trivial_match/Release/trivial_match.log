@@ -1,10 +1,10 @@
 ﻿  trivial_mapping.cpp
-c:\users\marui\desktop\2020-1\컴알실\9\trivial_match\trivial_match\trivial_mapping.cpp(60): warning C4244: '인수': 'time_t'에서 'unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-c:\users\marui\desktop\2020-1\컴알실\9\trivial_match\trivial_match\trivial_mapping.cpp(149): warning C4101: 'a' :참조되지 않은 지역 변수입니다.
-c:\users\marui\desktop\2020-1\컴알실\9\trivial_match\trivial_match\trivial_mapping.cpp(398): warning C4244: '초기화 중': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\marui\desktop\2020-1\컴알실\9\trivial_match\trivial_match\trivial_mapping.cpp(173): warning C4101: 'a' :참조되지 않은 지역 변수입니다.
+c:\users\marui\desktop\2020-1\컴알실\9\trivial_match\trivial_match\trivial_mapping.cpp(449): warning C4244: '초기화 중': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
   코드를 생성하고 있습니다.
+c:\users\marui\desktop\2020-1\컴알실\9\trivial_match\trivial_match\trivial_mapping.cpp(339): warning C4715: 'BF_shortread': 모든 제어 경로에서 값을 반환하지는 않습니다.
   2 of 301 functions ( 0.7%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    1 functions had inline decision re-evaluated but remain unchanged
+    0 functions had inline decision re-evaluated but remain unchanged
   코드를 생성했습니다.
   trivial_match.vcxproj -> C:\Users\marui\Desktop\2020-1\컴알실\9\trivial_match\Release\trivial_match.exe
